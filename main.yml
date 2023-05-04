@@ -1,0 +1,37 @@
+---
+- name: Create list of common items and send email notification
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    list1:
+      - item1
+      - item2
+      - item3
+      - item4
+    list2:
+      - item3
+      - item4
+      - item5
+      - item6
+    email_recipient: "user@example.com"
+    email_subject: "Common items between list1 and list2"
+    email_body: ""
+
+  tasks:
+    - name: Create new list of common items
+      set_fact:
+        common_items: "{{ list1 | intersect(list2) }}"
+
+    - name: Add common items to email body
+      set_fact:
+        email_body: "{{ email_body }}{{ item }}\n"
+      loop: "{{ common_items }}"
+      when: common_items is defined
+
+    - name: Send email notification
+      mail:
+        to: "{{ email_recipient }}"
+        subject: "{{ email_subject }}"
+        body: "{{ email_body }}"
+      when: common_items is defined
